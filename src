@@ -1,0 +1,91 @@
+-- Cria o banco de dados chamado GestaoFuncionarios
+CREATE DATABASE GestaoFuncionarios;
+
+-- Seleciona o banco de dados GestaoFuncionarios para que todos os comandos SQL seguintes sejam executados dentro dele
+USE GestaoFuncionarios;
+
+-- Cria a tabela Departamentos com uma coluna auto-incrementável id_departamento como chave primária e uma coluna nome para armazenar o nome do departamento
+CREATE TABLE Departamentos (
+    id_departamento INT AUTO_INCREMENT PRIMARY KEY,  -- Chave primária, auto-incrementa para gerar IDs únicos
+    nome VARCHAR(50) NOT NULL  -- Nome do departamento, não pode ser nulo
+);
+
+-- Cria a tabela Funcionarios com uma coluna auto-incrementável id_funcionario como chave primária, 
+-- e colunas para armazenar nome, cargo, salário e uma referência ao departamento onde o funcionário trabalha
+CREATE TABLE Funcionarios (
+    id_funcionario INT AUTO_INCREMENT PRIMARY KEY,  -- Chave primária, auto-incrementa para gerar IDs únicos
+    nome VARCHAR(100) NOT NULL,  -- Nome do funcionário, não pode ser nulo
+    cargo VARCHAR(50) NOT NULL,  -- Cargo do funcionário, não pode ser nulo
+    salario DECIMAL(10, 2) NOT NULL,  -- Salário do funcionário, formato decimal com duas casas decimais
+    id_departamento INT,  -- Chave estrangeira que referencia o departamento onde o funcionário trabalha
+    FOREIGN KEY (id_departamento) REFERENCES Departamentos(id_departamento)  -- Estabelece uma relação com a tabela Departamentos
+);
+
+-- Cria a tabela Salarios com uma coluna auto-incrementável id_salario como chave primária, 
+-- e colunas para armazenar a referência ao funcionário, a data e o valor do salário
+CREATE TABLE Salarios (
+    id_salario INT AUTO_INCREMENT PRIMARY KEY,  -- Chave primária, auto-incrementa para gerar IDs únicos
+    id_funcionario INT,  -- Chave estrangeira que referencia o funcionário ao qual o salário pertence
+    data DATE NOT NULL,  -- Data do salário, não pode ser nula
+    valor DECIMAL(10, 2) NOT NULL,  -- Valor do salário, formato decimal com duas casas decimais
+    FOREIGN KEY (id_funcionario) REFERENCES Funcionarios(id_funcionario)  -- Estabelece uma relação com a tabela Funcionarios
+);
+
+-- Insere alguns registros na tabela Departamentos
+INSERT INTO Departamentos (nome) VALUES ('Recursos Humanos');  -- Adiciona um departamento de Recursos Humanos
+INSERT INTO Departamentos (nome) VALUES ('TI');  -- Adiciona um departamento de Tecnologia da Informação
+INSERT INTO Departamentos (nome) VALUES ('Financeiro');  -- Adiciona um departamento Financeiro
+
+-- Insere alguns registros na tabela Funcionarios
+INSERT INTO Funcionarios (nome, cargo, salario, id_departamento) VALUES ('Alice Silva', 'Analista', 3000.00, 1);  -- Adiciona a funcionária Alice Silva no departamento de Recursos Humanos
+INSERT INTO Funcionarios (nome, cargo, salario, id_departamento) VALUES ('Bob Santos', 'Desenvolvedor', 5000.00, 2);  -- Adiciona o funcionário Bob Santos no departamento de TI
+INSERT INTO Funcionarios (nome, cargo, salario, id_departamento) VALUES ('Carlos Oliveira', 'Gerente', 7000.00, 3);  -- Adiciona o funcionário Carlos Oliveira no departamento Financeiro
+
+-- Insere alguns registros na tabela Salarios
+INSERT INTO Salarios (id_funcionario, data, valor) VALUES (1, '2024-08-01', 3000.00);  -- Adiciona um registro de salário para Alice Silva
+INSERT INTO Salarios (id_funcionario, data, valor) VALUES (2, '2024-08-01', 5000.00);  -- Adiciona um registro de salário para Bob Santos
+INSERT INTO Salarios (id_funcionario, data, valor) VALUES (3, '2024-08-01', 7000.00);  -- Adiciona um registro de salário para Carlos Oliveira
+
+-- Consulta para listar todos os funcionários e seus respectivos departamentos
+SELECT f.nome AS Nome_Funcionario, f.cargo, f.salario, d.nome AS Departamento
+FROM Funcionarios f
+JOIN Departamentos d ON f.id_departamento = d.id_departamento;
+
+-- Consulta para mostrar o salário total de cada departamento
+SELECT d.nome AS Departamento, SUM(f.salario) AS Salario_Total
+FROM Funcionarios f
+JOIN Departamentos d ON f.id_departamento = d.id_departamento
+GROUP BY d.nome;
+
+-- Consulta para verificar os salários históricos de um funcionário específico (id_funcionario = 1)
+SELECT f.nome AS Nome_Funcionario, s.data, s.valor
+FROM Salarios s
+JOIN Funcionarios f ON s.id_funcionario = f.id_funcionario
+WHERE f.id_funcionario = 1;
+
+-- Atualiza o salário de um funcionário específico (id_funcionario = 2)
+UPDATE Funcionarios
+SET salario = 5500.00
+WHERE id_funcionario = 2;
+
+-- Modifica o nome de um departamento específico (id_departamento = 2)
+UPDATE Departamentos
+SET nome = 'Tecnologia da Informação'
+WHERE id_departamento = 2;
+
+-- Exclui um funcionário específico e todos os registros relacionados de salários (id_funcionario = 1)
+DELETE FROM Salarios
+WHERE id_funcionario = 1;
+
+DELETE FROM Funcionarios
+WHERE id_funcionario = 1;
+
+-- Verifica se há funcionários associados a um departamento específico antes de deletar (id_departamento = 3)
+SELECT * FROM Funcionarios
+WHERE id_departamento = (SELECT id_departamento FROM Departamentos WHERE nome = 'Financeiro');
+
+-- Se não houver funcionários associados, remove o departamento (nome = 'Financeiro')
+DELETE FROM Departamentos
+WHERE nome = 'Financeiro';
+
+
